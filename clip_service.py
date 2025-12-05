@@ -4,11 +4,11 @@ from dotenv import load_dotenv
 
 # LangChain imports
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # LangSmith imports
 from langsmith import traceable
@@ -21,7 +21,7 @@ from pinecone import Pinecone, ServerlessSpec
 
 load_dotenv()
 
-class RAGService:
+class ClipRAGService:
     def __init__(self):
         self.embeddings = None
         self.vectorstore = None
@@ -33,40 +33,41 @@ class RAGService:
         )
         
     async def initialize(self):
-        """Initialize all components"""
-        # Initialize embeddings
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
-            google_api_key=os.getenv("GOOGLE_API_KEY")
-        )
-        if self.embeddings is None:
-            raise ValueError("Embeddings initialization failed")
-        else:
-            print("Embeddings initialized successfully")
+        """Initialize all components for CLIP RAG"""
+        print("Initializing CLIP RAG Service...")
         
-        # Initialize LLM
+        # Initialize CLIP embeddings
+        # Using sentence-transformers/clip-ViT-B-32 which has 512 dimensions
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/clip-ViT-B-32"
+        )
+        
+        if self.embeddings is None:
+            raise ValueError("CLIP Embeddings initialization failed")
+        else:
+            print("CLIP Embeddings initialized successfully")
+        
+        # Initialize LLM (still using Gemini for the chat part)
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
             google_api_key=os.getenv("GOOGLE_API_KEY"),
             temperature=0.3,
             convert_system_message_to_human=True
         )
-        if self.llm is None:
-            raise ValueError("LLM initialization failed")
-        else:
-            print("LLM initialized successfully")        
+        
         # Initialize Pinecone
         pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
         
-        index_name = os.getenv("PINECONE_INDEX", "agrigpt-backend-rag-index")
+        index_name = os.getenv("PINECONE_CLIP_INDEX", "agrigpt-backend-rag-index-clip")
         
         # Check if index exists, create if not
         existing_indexes = [index.name for index in pc.list_indexes()]
         
         if index_name not in existing_indexes:
+            print(f"Creating new Pinecone index: {index_name}")
             pc.create_index(
                 name=index_name,
-                dimension=768,  # Dimension for Google's text-embedding-004 model
+                dimension=512,  # Dimension for CLIP ViT-B-32
                 metric="cosine",
                 spec=ServerlessSpec(
                     cloud="aws",
@@ -80,13 +81,14 @@ class RAGService:
             embedding=self.embeddings,
             pinecone_api_key=os.getenv("PINECONE_API_KEY")
         )
+        
         if self.vectorstore is None:
             raise ValueError("Vector store initialization failed")
         else:
-            print("Vector store initialized successfully")    
+            print("Vector store initialized successfully")
     
     async def process_pdf(self, file_path: str, filename: str) -> int:
-        """Process PDF and add to vector store"""
+        """Process PDF and add to CLIP vector store"""
         try:
             # Read PDF
             reader = PdfReader(file_path)
@@ -105,7 +107,8 @@ class RAGService:
                     metadata={
                         "source": filename,
                         "chunk": i,
-                        "total_chunks": len(chunks)
+                        "total_chunks": len(chunks),
+                        "embedding_model": "clip-ViT-B-32"
                     }
                 )
                 documents.append(doc)
@@ -120,8 +123,8 @@ class RAGService:
     
     @traceable(run_type="retriever")
     def retrieve_documents(self, query: str) -> List[Dict[str, Any]]:
-        """Retrieve documents relevant to the query"""
-        print("begin retrieve_documents")
+        """Retrieve documents relevant to the query using CLIP embeddings"""
+        print("begin retrieve_documents (CLIP)")
         import time
         retries = 3
         docs = []
@@ -132,10 +135,10 @@ class RAGService:
             except Exception as e:
                 if "429" in str(e) and attempt < retries - 1:
                     print(f"Rate limit hit, retrying in {2 * (attempt + 1)} seconds...")
-                    time.sleep(2 * (attempt + 1))  # Exponential backoff
+                    time.sleep(2 * (attempt + 1))
                     continue
                 raise e
-        print("end retrieve_documents")
+        print("end retrieve_documents (CLIP)")
         return [
             {
                 "page_content": doc.page_content,
@@ -148,8 +151,7 @@ class RAGService:
     @traceable(run_type="prompt")
     def create_prompt(self, query: str, context: List[Dict[str, Any]], chat_history: List[dict] = None) -> List[Any]:
         """Create the prompt for the LLM"""
-        
-        # Format context
+        # Reuse the same prompt logic as the main service
         context_str = "\n\n".join([doc["page_content"] for doc in context])
         
         system_prompt = (
@@ -169,7 +171,6 @@ class RAGService:
         
         messages.append(("human", query))
         
-        # Create prompt template to format messages properly
         prompt_template = ChatPromptTemplate.from_messages(messages)
         return prompt_template.format_messages()
 
@@ -181,20 +182,11 @@ class RAGService:
         print("end call_llm")
         return response.content
 
-    # @traceable(run_type="tool")
-    # def calculate(self, expression: str) -> str:
-    #     """A simple calculator tool"""
-    #     try:
-    #         # Safe evaluation is recommended in production, but for this example eval is used
-    #         return str(eval(expression, {"__builtins__": None}, {}))
-    #     except Exception as e:
-    #         return f"Error: {str(e)}"
-
     @traceable(run_type="chain")
     async def query(self, query: str, chat_history: List[dict] = None) -> Tuple[str, List[str]]:
-        """Query the RAG system"""
+        """Query the CLIP RAG system"""
         try:
-            print("Query: ", query)
+            print("Query (CLIP): ", query)
             # 1. Retrieve documents
             retrieved_docs = self.retrieve_documents(query)
             print("Retrieved documents: ", retrieved_docs)
@@ -215,20 +207,4 @@ class RAGService:
             return answer, sources
             
         except Exception as e:
-            raise Exception(f"Error querying RAG system: {str(e)}")
-    
-    async def clear_knowledge_base(self):
-        """Clear all documents from the vector store"""
-        try:
-            # Get all document IDs and delete them
-            # Note: This is a simplified approach. For production, you might want
-            # to implement a more sophisticated cleanup mechanism
-            index_name = os.getenv("PINECONE_INDEX", "agrigpt-backend-rag-index")
-            pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-            index = pc.Index(index_name)
-            
-            # Delete all vectors (this will clear the entire index)
-            index.delete(delete_all=True)
-            
-        except Exception as e:
-            raise Exception(f"Error clearing knowledge base: {str(e)}")
+            raise Exception(f"Error querying CLIP RAG system: {str(e)}")

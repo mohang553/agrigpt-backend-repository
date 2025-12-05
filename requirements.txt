@@ -19,3 +19,7 @@ requests
 python-multipart
 langsmith
 pydantic
+
+# CLIP Embeddings
+sentence-transformers
+langchain-huggingface

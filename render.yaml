@@ -13,8 +13,8 @@ services:
         sync: false
       - key: PINECONE_API_KEY
         sync: false
-      - key: PINECONE_INDEX_NAME
-        value: rag-chatbot-index
+      - key: PINECONE_INDEX
+        sync: false
       - key: PINECONE_CLOUD
         value: aws
       - key: PINECONE_REGION

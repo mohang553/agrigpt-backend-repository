@@ -11,8 +11,12 @@ load_dotenv()
 
 # Import RAG components
 from rag_service import RAGService
+from clip_routes import router as clip_router, clip_rag_service
 
 app = FastAPI(title="RAG Chatbot API", version="1.0.0")
+
+# Include CLIP router
+app.include_router(clip_router)
 
 # Enable CORS for React frontend
 app.add_middleware(
@@ -38,6 +42,7 @@ class ChatResponse(BaseModel):
 async def startup_event():
     """Initialize the RAG service on startup"""
     await rag_service.initialize()
+    await clip_rag_service.initialize()
 
 @app.post("/upload-crop-data", response_model=dict)
 async def upload_pdf(file: UploadFile = File(...)):
