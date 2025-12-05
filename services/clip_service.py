@@ -31,64 +31,77 @@ class ClipRAGService:
             chunk_overlap=200,
             length_function=len,
         )
+        self.initialized = False
+        self.initialization_error = None
         
     async def initialize(self):
         """Initialize all components for CLIP RAG"""
         print("Initializing CLIP RAG Service...")
         
-        # Initialize CLIP embeddings
-        # Using sentence-transformers/clip-ViT-B-32 which has 512 dimensions
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/clip-ViT-B-32"
-        )
-        
-        if self.embeddings is None:
-            raise ValueError("CLIP Embeddings initialization failed")
-        else:
-            print("CLIP Embeddings initialized successfully")
-        
-        # Initialize LLM (still using Gemini for the chat part)
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            google_api_key=os.getenv("GOOGLE_API_KEY"),
-            temperature=0.3,
-            convert_system_message_to_human=True
-        )
-        
-        # Initialize Pinecone
-        pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-        
-        index_name = os.getenv("PINECONE_CLIP_INDEX", "agrigpt-backend-rag-index-clip")
-        
-        # Check if index exists, create if not
-        existing_indexes = [index.name for index in pc.list_indexes()]
-        
-        if index_name not in existing_indexes:
-            print(f"Creating new Pinecone index: {index_name}")
-            pc.create_index(
-                name=index_name,
-                dimension=512,  # Dimension for CLIP ViT-B-32
-                metric="cosine",
-                spec=ServerlessSpec(
-                    cloud="aws",
-                    region="us-east-1"
-                )
+        try:
+            # Initialize CLIP embeddings
+            # Using sentence-transformers/clip-ViT-B-32 which has 512 dimensions
+            self.embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/clip-ViT-B-32"
             )
-        
-        # Initialize vector store
-        self.vectorstore = PineconeVectorStore(
-            index_name=index_name,
-            embedding=self.embeddings,
-            pinecone_api_key=os.getenv("PINECONE_API_KEY")
-        )
-        
-        if self.vectorstore is None:
-            raise ValueError("Vector store initialization failed")
-        else:
-            print("Vector store initialized successfully")
+            
+            if self.embeddings is None:
+                raise ValueError("CLIP Embeddings initialization failed")
+            else:
+                print("CLIP Embeddings initialized successfully")
+            
+            # Initialize LLM (still using Gemini for the chat part)
+            self.llm = ChatGoogleGenerativeAI(
+                model="gemini-2.5-flash",
+                google_api_key=os.getenv("GOOGLE_API_KEY"),
+                temperature=0.3,
+                convert_system_message_to_human=True
+            )
+            
+            # Initialize Pinecone
+            pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+            
+            index_name = os.getenv("PINECONE_CLIP_INDEX", "agrigpt-backend-rag-index-clip")
+            
+            # Check if index exists, create if not
+            existing_indexes = [index.name for index in pc.list_indexes()]
+            
+            if index_name not in existing_indexes:
+                print(f"Creating new Pinecone index: {index_name}")
+                pc.create_index(
+                    name=index_name,
+                    dimension=512,  # Dimension for CLIP ViT-B-32
+                    metric="cosine",
+                    spec=ServerlessSpec(
+                        cloud="aws",
+                        region="us-east-1"
+                    )
+                )
+            
+            # Initialize vector store
+            self.vectorstore = PineconeVectorStore(
+                index_name=index_name,
+                embedding=self.embeddings,
+                pinecone_api_key=os.getenv("PINECONE_API_KEY")
+            )
+            
+            if self.vectorstore is None:
+                raise ValueError("Vector store initialization failed")
+            else:
+                print("Vector store initialized successfully")
+                
+            self.initialized = True
+            
+        except Exception as e:
+            print(f"CLIP RAG Service initialization failed: {str(e)}")
+            self.initialization_error = str(e)
+            self.initialized = False
     
     async def process_pdf(self, file_path: str, filename: str) -> int:
         """Process PDF and add to CLIP vector store"""
+        if not self.initialized:
+            raise Exception(f"CLIP service not initialized: {self.initialization_error}")
+            
         try:
             # Read PDF
             reader = PdfReader(file_path)
@@ -185,6 +198,9 @@ class ClipRAGService:
     @traceable(run_type="chain")
     async def query(self, query: str, chat_history: List[dict] = None) -> Tuple[str, List[str]]:
         """Query the CLIP RAG system"""
+        if not self.initialized:
+            raise Exception(f"CLIP service not initialized: {self.initialization_error}")
+            
         try:
             print("Query (CLIP): ", query)
             # 1. Retrieve documents
