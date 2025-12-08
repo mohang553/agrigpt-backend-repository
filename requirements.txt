@@ -1,4 +1,4 @@
-# Minimal working set for Python 3.13
+# Python dependencies for AgriGPT Backend (Python 3.11)
 python-dotenv
 fastapi
 uvicorn
