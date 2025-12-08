@@ -10,8 +10,18 @@ load_dotenv()
 
 # Import Routers and Services
 from routes.rag_routes import router as rag_router, rag_service
-from routes.clip_ingest_routes import router as clip_ingest_router
-from services.clip_ingest_service import clip_ingest_service
+
+# CLIP imports - wrapped in try-except to allow server to start even if CLIP has issues
+clip_import_error = None
+try:
+    from routes.clip_ingest_routes import router as clip_ingest_router
+    from services.clip_ingest_service import clip_ingest_service
+except Exception as e:
+    clip_import_error = str(e)
+    print(f"⚠️ WARNING: Failed to import CLIP modules: {e}")
+    clip_ingest_router = None
+    clip_ingest_service = None
+
 
 app = FastAPI(title="RAG Chatbot API", version="1.0.0")
 
@@ -36,7 +46,10 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Include Routers
 app.include_router(rag_router)
-app.include_router(clip_ingest_router)
+if clip_ingest_router is not None:
+    app.include_router(clip_ingest_router)
+else:
+    print("⚠️ CLIP router not loaded - multimodal features disabled")
 
 
 
@@ -46,7 +59,10 @@ async def initialize_services_background():
     try:
         print("🚀 Starting background initialization...")
         await rag_service.initialize()
-        await clip_ingest_service.initialize()
+        if clip_ingest_service is not None:
+            await clip_ingest_service.initialize()
+        else:
+            print("⚠️ Skipping CLIP service initialization (import failed)")
         services_ready = True
         print("✅✅✅ ALL SERVICES READY ✅✅✅")
     except Exception as e:
@@ -68,7 +84,9 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "RAG Chatbot API",
-        "services_ready": services_ready
+        "services_ready": services_ready,
+        "clip_available": clip_ingest_router is not None,
+        "clip_import_error": clip_import_error
     }
 
 
