@@ -11,9 +11,9 @@ A modern RAG (Retrieval-Augmented Generation) chatbot backend built with FastAPI
 
 ## 🌐 Live Demo
 
-- **Frontend**: https://rag-chatbot-01.vercel.app
-- **Backend API**: https://ragchatbot-01.onrender.com
-- **API Docs**: https://ragchatbot-01.onrender.com/docs
+- **Frontend**: https://agrigpt-six.vercel.app
+- **Backend API**: https://agrigpt-backend-rag.onrender.com
+- **API Docs**: https://agrigpt-backend-rag.onrender.com/docs
 
 ## ✨ Features
 
@@ -63,11 +63,15 @@ Premium Notion-inspired UI with:
 
 ### Setup
 
-1. **Clone the repository**
+1. **Fork and clone the repository**
 
 ```bash
-git clone https://github.com/hemanth090/RagChatbot-01.git
-cd RagChatbot-01
+# Fork the repository on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/agrigpt-backend-rag.git
+cd agrigpt-backend-rag
+
+# Add upstream remote to sync with original repo
+git remote add upstream https://github.com/alumnx-ai-labs/agrigpt-backend-rag.git
 ```
 
 2. **Backend Setup**
@@ -120,7 +124,7 @@ Visit: http://localhost:5173
 
 ### Backend (Render)
 
-**Already Deployed**: https://ragchatbot-01.onrender.com
+**Already Deployed**: https://agrigpt-backend-rag.onrender.com
 
 To deploy your own:
 
@@ -142,13 +146,13 @@ Coming soon! Deploy to Vercel with:
 
 1. Import GitHub repository
 2. Set Root Directory: `frontend`
-3. Add environment variable: `VITE_API_URL=https://ragchatbot-01.onrender.com`
+3. Add environment variable: `VITE_API_URL=https://agrigpt-backend-rag.onrender.com`
 4. Deploy!
 
 ## 📁 Project Structure
 
 ```
-RagChatbot-01/
+agrigpt-backend-rag/
 ├── .python-version       # Python 3.11.9
 ├── main.py              # FastAPI backend
 ├── services/            # Service logic
@@ -183,7 +187,7 @@ LANGSMITH_PROJECT=rag-chatbot
 
 ```env
 VITE_API_URL=http://localhost:8000  # Local development
-# VITE_API_URL=https://ragchatbot-01.onrender.com  # Production
+# VITE_API_URL=https://agrigpt-backend-rag.onrender.com  # Production
 ```
 
 ## 📖 API Endpoints
