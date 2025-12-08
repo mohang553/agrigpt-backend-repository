@@ -7,14 +7,8 @@ from services.rag_service import RAGService
 
 router = APIRouter(tags=["RAG"])
 
-# Initialize RAG service
+# Initialize RAG service instance (initialization happens in main.py)
 rag_service = RAGService()
-
-@router.on_event("startup")
-async def startup_event():
-    """Initialize RAG service on startup"""
-    await rag_service.initialize()
-    print("RAG service initialized successfully")
 
 class ChatRequest(BaseModel):
     query: str
