@@ -1,6 +1,13 @@
-# RAG Chatbot - React + FastAPI
+# AgriGPT Backend RAG
 
-A modern RAG (Retrieval-Augmented Generation) chatbot with React frontend and FastAPI backend. Upload PDF documents and chat with them using Google Gemini AI and Pinecone vector database.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
+
+A modern RAG (Retrieval-Augmented Generation) chatbot backend built with FastAPI. Upload PDF documents and chat with them using Google Gemini AI, Pinecone vector database, and CLIP embeddings for multimodal search.
+
+> **🌟 This is an open-source project!** We welcome contributions from the community. See our [Contributing Guide](docs/CONTRIBUTING.md) to get started.
 
 ## 🌐 Live Demo
 
@@ -13,7 +20,9 @@ A modern RAG (Retrieval-Augmented Generation) chatbot with React frontend and Fa
 - 📄 **PDF Upload**: Upload and process PDF documents
 - 💬 **AI Chat**: Ask questions about your documents using Google Gemini
 - 🔍 **Source Citations**: See which parts of the document were used to answer
+- 🖼️ **Multimodal Search**: Search across text and images using CLIP embeddings
 - 🗑️ **Knowledge Management**: Clear the knowledge base anytime
+- ☁️ **Cloud Storage**: Cloudflare R2 integration for scalable file storage
 - 🎨 **Premium UI**: Notion-inspired design with cream color palette
 
 ## 🎨 Design
@@ -40,6 +49,8 @@ Premium Notion-inspired UI with:
 - LangChain 0.2.x
 - Google Gemini (LLM)
 - Pinecone (Vector DB)
+- CLIP Embeddings (Multimodal)
+- Cloudflare R2 (Storage)
 - LangSmith (Observability)
 
 ## ⚡ Quick Start (Local Development)
@@ -217,6 +228,30 @@ VITE_API_URL=http://localhost:8000  # Local development
 - All packages pinned to exact versions
 - LangChain 0.2.x (stable) instead of 0.3.x (cutting-edge)
 - See `deployment_issues.md` for full deployment story
+
+## 🤝 Contributing
+
+We welcome contributions from the community! This project is open source and we'd love your help to make it better.
+
+### How to Contribute
+
+- 🐛 **Report bugs** - Found a bug? [Open an issue](https://github.com/alumnx-ai-labs/agrigpt-backend-rag/issues)
+- 💡 **Suggest features** - Have an idea? We'd love to hear it!
+- 📝 **Improve documentation** - Help make our docs better
+- 🔧 **Submit pull requests** - Fix bugs or add features
+
+### Getting Started
+
+1. Read our [Contributing Guide](docs/CONTRIBUTING.md) for detailed instructions
+2. Check out [good first issues](https://github.com/alumnx-ai-labs/agrigpt-backend-rag/labels/good%20first%20issue)
+3. Fork the repository and create your branch
+4. Make your changes and submit a pull request
+
+For detailed setup instructions, coding standards, and guidelines, please see our **[CONTRIBUTING.md](docs/CONTRIBUTING.md)**.
+
+## 📄 License
+
+This project is open source. Please see the LICENSE file for more details.
 
 ## 🙏 Credits
 

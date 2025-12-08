@@ -1,0 +1,119 @@
+[
+  {
+    "category": "Direct Factual Questions",
+    "test_case_id": "factual_1",
+    "query": "What is the MIDH subsidy percentage for mosambi plantation in Year 1?",
+    "document_type": "government_schemes",
+    "expected_answer": "60% subsidy (Rs. 75,000 per hectare out of total unit cost of Rs. 1,25,000)",
+    "ground_truth_context": "MIDH provides 60% subsidy in Year 1 for area expansion, which amounts to Rs. 75,000 per hectare",
+    "evaluation_criteria": {
+      "correctness": "Must mention 60% and Rs. 75,000",
+      "completeness": "Should reference the total unit cost",
+      "relevance": "Must be specific to MIDH Year 1"
+    }
+  },
+  {
+    "category": "Direct Factual Questions",
+    "test_case_id": "factual_2",
+    "query": "What is the farmer's premium percentage for PMFBY for horticultural crops?",
+    "document_type": "government_schemes",
+    "expected_answer": "5% of the sum insured (with government covering the remaining 95%)",
+    "ground_truth_context": "For horticultural crops under PMFBY, farmers pay 5% premium while government pays 95%",
+    "evaluation_criteria": {
+      "correctness": "Must state 5% farmer premium",
+      "completeness": "Should mention government pays 95%",
+      "relevance": "Specific to horticultural crops"
+    }
+  },
+  {
+    "category": "Direct Factual Questions",
+    "test_case_id": "factual_3",
+    "query": "What is the annual PM-KISAN benefit amount?",
+    "document_type": "government_schemes",
+    "expected_answer": "Rs. 6,000 per year, disbursed in 3 installments of Rs. 2,000 each",
+    "ground_truth_context": "PM-KISAN provides Rs. 6,000 annually in quarterly installments",
+    "evaluation_criteria": {
+      "correctness": "Must state Rs. 6,000 annual amount",
+      "completeness": "Should mention installment structure",
+      "relevance": "Clear and direct answer"
+    }
+  },
+  {
+    "category": "Complex Multi-Scheme Questions",
+    "test_case_id": "complex_1",
+    "query": "How can an SC/ST farmer in Telangana maximize subsidies for a 2-hectare mosambi plantation?",
+    "document_type": "government_schemes",
+    "expected_answer": "SC/ST farmers in Telangana can combine: (1) MIDH 60% subsidy (Rs. 1,50,000), (2) PMKSY 100% drip irrigation subsidy (Rs. 1,20,000), (3) PM-KISAN Rs. 6,000/year, (4) YSR Annadatha Rs. 18,000/year, (5) NREGA convergence for labor (Rs. 30,000), totaling approximately Rs. 3,24,000 in Year 1",
+    "ground_truth_context": "Multiple schemes can be converged for maximum benefit including MIDH, PMKSY, PM-KISAN, state schemes, and NREGA",
+    "evaluation_criteria": {
+      "correctness": "Must mention at least 3-4 major schemes",
+      "completeness": "Should provide approximate total benefit",
+      "relevance": "Specific to SC/ST and Telangana context"
+    }
+  },
+  {
+    "category": "Complex Multi-Scheme Questions",
+    "test_case_id": "complex_2",
+    "query": "What are the eligibility requirements for MIDH area expansion subsidy?",
+    "document_type": "government_schemes",
+    "expected_answer": "Key requirements: (1) Land ownership or 10-year lease deed, (2) Assured year-round irrigation, (3) No previous MIDH benefit in last 5 years, (4) Priority for SC/ST/women/small farmers, (5) Water source certification",
+    "ground_truth_context": "MIDH has specific eligibility criteria including land ownership, irrigation, and prior benefit verification",
+    "evaluation_criteria": {
+      "correctness": "Must mention land and irrigation requirements",
+      "completeness": "Should cover 3+ eligibility criteria",
+      "relevance": "Comprehensive coverage of requirements"
+    }
+  },
+  {
+    "category": "Complex Multi-Scheme Questions",
+    "test_case_id": "complex_3",
+    "query": "What is the complete cost breakdown for establishing 1 hectare of mosambi plantation under MIDH?",
+    "document_type": "government_schemes",
+    "expected_answer": "Total cost Rs. 1,25,000 includes: Plant material Rs. 16,500 (275 plants), Soil preparation Rs. 8,000, Organic manures Rs. 20,000, Fertilizers Rs. 25,000, Bio-fertilizers Rs. 5,000, Mulching Rs. 12,000, Pesticides Rs. 18,000, Labor Rs. 15,000, Micro irrigation Rs. 5,500",
+    "ground_truth_context": "MIDH unit cost breakdown shows detailed component-wise costs for plantation",
+    "evaluation_criteria": {
+      "correctness": "Must mention total cost Rs. 1,25,000",
+      "completeness": "Should list at least 5-6 major components",
+      "relevance": "Detailed cost breakdown provided"
+    }
+  },
+  {
+    "category": "Out-of-Scope Questions",
+    "test_case_id": "out_of_scope_1",
+    "query": "What is the capital of France?",
+    "document_type": "government_schemes",
+    "expected_answer": "I can only answer questions about Government agricultural schemes and programs. Please ask a relevant question.",
+    "ground_truth_context": "This is completely unrelated to agricultural schemes",
+    "evaluation_criteria": {
+      "correctness": "Must refuse to answer",
+      "completeness": "Should redirect to relevant topics",
+      "relevance": "Clear scope boundary enforcement"
+    }
+  },
+  {
+    "category": "Out-of-Scope Questions",
+    "test_case_id": "out_of_scope_2",
+    "query": "Tell me a joke about farming",
+    "document_type": "government_schemes",
+    "expected_answer": "I can only answer questions about Government agricultural schemes and programs. Please ask a relevant question.",
+    "ground_truth_context": "Entertainment/casual conversation is out of scope",
+    "evaluation_criteria": {
+      "correctness": "Must refuse to answer",
+      "completeness": "Should maintain professional boundaries",
+      "relevance": "No joke or casual response"
+    }
+  },
+  {
+    "category": "Out-of-Scope Questions",
+    "test_case_id": "out_of_scope_3",
+    "query": "How do I cook mosambi juice at home?",
+    "document_type": "government_schemes",
+    "expected_answer": "I can only answer questions about Government agricultural schemes and programs. Please ask a relevant question.",
+    "ground_truth_context": "Cooking/recipe questions are outside the scheme information scope",
+    "evaluation_criteria": {
+      "correctness": "Must refuse to answer",
+      "completeness": "Should redirect to scheme-related topics",
+      "relevance": "No cooking advice provided"
+    }
+  }
+]
