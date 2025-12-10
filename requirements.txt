@@ -3,6 +3,9 @@ python-dotenv
 fastapi
 uvicorn
 
+# MongoDB async driver
+motor
+
 # Pinecone with latest client
 pinecone
 
