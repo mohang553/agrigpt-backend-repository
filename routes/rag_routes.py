@@ -4,6 +4,7 @@ from typing import List, Optional
 import tempfile
 import os
 from services.rag_service import RAGService
+from services.user_service import user_service
 
 router = APIRouter(tags=["RAG"])
 
@@ -17,6 +18,14 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     sources: List[str]
+
+
+class UserEnsureRequest(BaseModel):
+    email: str
+
+
+class UserEnsureResponse(BaseModel):
+    userType: str
 
 @router.post("/upload-crop-data", response_model=dict)
 async def upload_pdf(file: UploadFile = File(...)):
@@ -108,3 +117,18 @@ async def clear_knowledge_base(document_type: Optional[str] = None):
             return {"message": "All knowledge bases cleared successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing knowledge base: {str(e)}")
+
+
+@router.post("/users", response_model=UserEnsureResponse)
+async def ensure_user(request: UserEnsureRequest):
+    """
+    Ensure a user exists for the given email.
+    If missing, create with default userType 'user'. Returns the userType.
+    """
+    try:
+        user_type = await user_service.ensure_user(request.email)
+        return UserEnsureResponse(userType=user_type)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error ensuring user: {str(e)}")
