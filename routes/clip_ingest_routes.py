@@ -202,7 +202,7 @@ class AskWithImageResponse(BaseModel):
 async def ask_with_image(
     file: Optional[UploadFile] = File(None),
     mediaUrl: Optional[str] = Form(None),
-    query: str = Form("What disease does this crop have and how can I treat it?")
+    query: str = Form("What disease does this crop have? and how can I treat it?")
 ):
     """
     Answer questions about a crop image:
