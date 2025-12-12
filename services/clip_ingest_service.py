@@ -2,6 +2,7 @@ import os
 import io
 import asyncio
 from typing import List, Tuple, Dict, Any, Optional
+import requests
 from dotenv import load_dotenv
 
 # PDF and Image processing
@@ -543,13 +544,49 @@ class ClipIngestService:
         return texts
     
     @traceable(run_type="chain")
-    async def ask_with_image(self, image_bytes: bytes, query: str, top_k: int = 3) -> Dict[str, Any]:
+    async def ask_with_image(self, image_bytes: Optional[bytes] = None, query: str = "", media_url: Optional[str] = None, top_k: int = 3) -> Dict[str, Any]:
         """
         Answer a question about a crop image using CLIP matching + text context
         NOW searches both images AND text in same CLIP index
+        Supports either direct image bytes OR media_url
         """
         if not self.initialized:
             raise Exception("CLIP Ingest Service not initialized")
+
+        # Handle media_url if image_bytes is missing
+        if not image_bytes and media_url:
+            print(f"📥 Downloading image from: {media_url}")
+            try:
+                # Use a proper user agent to avoid being blocked by some servers
+                headers = {'User-Agent': 'AgriGPT-Backend/1.0'}
+                response = requests.get(media_url, headers=headers, timeout=10)
+                response.raise_for_status()
+                
+                # Check content type
+                content_type = response.headers.get('Content-Type', '').lower()
+                if not content_type.startswith('image/'):
+                    # Try to detect magic bytes if content-type is missing or generic
+                    # But for now, user requested: "see if it is an image, else return please only send images"
+                    # Strictly speaking, we should rely on content-type or try to open with PIL
+                    pass 
+                
+                # We'll verify it's an image when we try to open it with PIL below, 
+                # but let's check basic headers first to fail fast
+                if 'image' not in content_type and 'application/octet-stream' not in content_type:
+                     # Some signed URLs might return octet-stream, so we allow that and let PIL decide
+                     # But if it's text/html, clearly wrong.
+                     if 'text' in content_type or 'html' in content_type:
+                         raise Exception("URL does not appear to point to an image (Content-Type: " + content_type + ")")
+                
+                image_bytes = response.content
+                
+            except requests.RequestException as e:
+                raise Exception(f"Failed to download image from URL: {str(e)}")
+            except Exception as e:
+                raise Exception(f"Error processing media URL: {str(e)}")
+
+        if not image_bytes:
+             raise Exception("Please provide either an image file or a valid mediaUrl.")
 
         try:
             # Wrap entire operation with timeout
@@ -559,7 +596,11 @@ class ClipIngestService:
                 print("🖼️ Step 1: CLIP model loaded, processing image...")
                 
                 # 1. Load and embed the uploaded image with CLIP
-                img = Image.open(io.BytesIO(image_bytes))
+                try:
+                    img = Image.open(io.BytesIO(image_bytes))
+                except Exception:
+                    raise Exception("Please only send images. The provided content could not be decoded as an image.")
+
                 print("🧠 Step 2: Generating CLIP embedding for uploaded image...")
                 if img.mode != "RGB":
                     img = img.convert("RGB")

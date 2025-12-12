@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Form
 from pydantic import BaseModel
 from typing import List, Optional, Union
 import tempfile
@@ -200,27 +200,36 @@ class AskWithImageResponse(BaseModel):
 
 @router.post("/ask-with-image", response_model=AskWithImageResponse)
 async def ask_with_image(
-    file: UploadFile = File(...),
-    query: str = "What disease does this crop have and how can I treat it?"
+    file: Optional[UploadFile] = File(None),
+    mediaUrl: Optional[str] = Form(None),
+    query: str = Form("What disease does this crop have and how can I treat it?")
 ):
     """
     Answer questions about a crop image:
-    1. Upload a crop image
+    1. Upload a crop image OR provide mediaUrl
     2. CLIP finds similar content (BOTH images AND text) in database
     3. LLM generates expert answer using matched content
     
     NOW ENHANCED: Searches both images and text in same CLIP index!
     """
-    # Validate file type by extension
-    allowed_extensions = [".jpg", ".jpeg", ".png", ".webp"]
-    file_ext = "." + file.filename.split(".")[-1].lower() if "." in file.filename else ""
-    if file_ext not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Only image files (JPEG, PNG, WebP) are allowed")
+    # Validate that either file or mediaUrl is provided
+    if not file and not mediaUrl:
+        raise HTTPException(status_code=400, detail="Please provide either an image file or a mediaUrl")
+
+    # Validate file type if present
+    if file:
+        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp"]
+        file_ext = "." + file.filename.split(".")[-1].lower() if "." in file.filename else ""
+        if file_ext not in allowed_extensions:
+            raise HTTPException(status_code=400, detail="Only image files (JPEG, PNG, WebP) are allowed")
     
     try:
-        image_bytes = await file.read()
+        image_bytes = None
+        if file:
+            image_bytes = await file.read()
         
-        result = await clip_ingest_service.ask_with_image(image_bytes, query)
+        # Service handles media_url download if image_bytes is None
+        result = await clip_ingest_service.ask_with_image(image_bytes=image_bytes, query=query, media_url=mediaUrl)
         
         return AskWithImageResponse(
             answer=result["answer"],
