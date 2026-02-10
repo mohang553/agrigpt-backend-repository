@@ -4,12 +4,16 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 import asyncio
+import logging
+
 
 # Load environment variables
 load_dotenv()
 
 # Import Routers and Services
 from routes.rag_routes import router as rag_router, rag_service
+from api.v1.endpoints.agent import router as agent_router
+
 
 # CLIP imports - wrapped in try-except to allow server to start even if CLIP has issues
 #clip_import_error = None
@@ -57,7 +61,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 #else:
 #    print("⚠️ CLIP router not loaded - multimodal features disabled")
 
-
+app.include_router(agent_router, prefix="/api/v1")
 
 
 async def initialize_services_background():
